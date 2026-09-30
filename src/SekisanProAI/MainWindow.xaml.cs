@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.Win32;
 using SekisanProAI.Services;
 using System.Windows;
@@ -62,14 +63,14 @@ public partial class MainWindow : Window
     private void Scan_Click(object sender,RoutedEventArgs e)
     {
         var folder=FolderBox.Text.Trim();
-        if(!Directory.Exists(folder)){ MessageBox.Show("有効なフォルダを選択してください。"); return; }
+        if(!Directory.Exists(folder)){ System.Windows.MessageBox.Show("有効なフォルダを選択してください。"); return; }
         _watcher.Scan(folder);
         RefreshVersion();
     }
 
     private void ImportFile_Click(object sender,RoutedEventArgs e)
     {
-        var dlg=new OpenFileDialog{Filter="Golden River出力 (*.csv;*.xlsx;*.xlsm)|*.csv;*.xlsx;*.xlsm|すべてのファイル|*.*"};
+        var dlg=new Microsoft.Win32.OpenFileDialog{Filter="Golden River出力 (*.csv;*.xlsx;*.xlsm)|*.csv;*.xlsx;*.xlsm|すべてのファイル|*.*"};
         if(dlg.ShowDialog()!=true) return;
         try
         {
@@ -78,7 +79,7 @@ public partial class MainWindow : Window
             SidebarStatus.Text=SyncStatus.Text;
             RefreshVersion();
         }
-        catch(Exception ex){ MessageBox.Show(ex.Message,"取込エラー",MessageBoxButton.OK,MessageBoxImage.Error); }
+        catch(Exception ex){ System.Windows.MessageBox.Show(ex.Message,"取込エラー",MessageBoxButton.OK,MessageBoxImage.Error); }
     }
 
     private void RefreshVersion()

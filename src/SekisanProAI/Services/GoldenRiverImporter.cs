@@ -57,10 +57,7 @@ public sealed class GoldenRiverImporter
         catch { text = Encoding.GetEncoding(932).GetString(bytes); }
 
         var rows = new List<List<string>>();
-        foreach (var line in text.Replace("
-","
-").Split('
-'))
+        foreach (var line in text.Replace("\r\n","\n").Split('\n'))
         {
             if (string.IsNullOrWhiteSpace(line)) continue;
             rows.Add(ParseCsvLine(line));

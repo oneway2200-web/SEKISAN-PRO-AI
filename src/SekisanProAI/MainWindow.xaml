@@ -1,35 +1,44 @@
 <Window x:Class="SekisanProAI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SEKISAN PRO AI" Height="760" Width="1220"
-        MinHeight="650" MinWidth="1000" WindowStartupLocation="CenterScreen">
-    <Grid Background="#F5F7FA">
+        Title="SEKISAN PRO AI" Height="820" Width="1380"
+        MinHeight="700" MinWidth="1100" WindowStartupLocation="CenterScreen">
+    <Grid Background="#F4F6F9">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="230"/>
+            <ColumnDefinition Width="245"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="0" Background="#16212D">
-            <StackPanel Margin="18">
-                <TextBlock Text="SEKISAN" Foreground="White" FontSize="28" FontWeight="Bold"/>
-                <TextBlock Text="PRO AI" Foreground="#53C7FF" FontSize="20" Margin="0,0,0,28"/>
-                <Button Content="🏠  ホーム" Click="Home_Click"/>
-                <Button Content="🔎  単価検索" Click="Price_Click"/>
-                <Button Content="🔄  Golden River同期" Click="Sync_Click"/>
-                <Button Content="🗂  単価履歴" Click="History_Click"/>
-                <Separator Margin="0,20"/>
-                <TextBlock Text="状態" Foreground="#9FB0BF" FontWeight="Bold"/>
-                <TextBlock x:Name="SidebarStatus" Text="準備完了" Foreground="White" TextWrapping="Wrap" Margin="0,8"/>
-            </StackPanel>
+            <DockPanel Margin="18">
+                <StackPanel DockPanel.Dock="Top">
+                    <TextBlock Text="SEKISAN" Foreground="White" FontSize="28" FontWeight="Bold"/>
+                    <TextBlock Text="PRO AI" Foreground="#53C7FF" FontSize="20" Margin="0,0,0,22"/>
+                    <Button Content="🏠  ホーム" Click="Home_Click"/>
+                    <Button Content="＋  新規積算" Click="Estimate_Click"/>
+                    <Button Content="🔎  単価検索" Click="Price_Click"/>
+                    <Button Content="🔄  Golden River同期" Click="Sync_Click"/>
+                    <Button Content="📊  過去工事比較" Click="Historical_Click"/>
+                    <Button Content="⚙  地域・AI設定" Click="Settings_Click"/>
+                    <Button Content="🗂  単価更新履歴" Click="History_Click"/>
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Bottom" VerticalAlignment="Bottom">
+                    <Separator Margin="0,15"/>
+                    <TextBlock Text="状態" Foreground="#9FB0BF" FontWeight="Bold"/>
+                    <TextBlock x:Name="SidebarStatus" Text="準備完了" Foreground="White"
+                               TextWrapping="Wrap" Margin="0,8,0,0"/>
+                </StackPanel>
+            </DockPanel>
         </Border>
 
-        <Grid Grid.Column="1" Margin="24">
+        <Grid Grid.Column="1" Margin="22">
             <Grid x:Name="HomePanel">
                 <StackPanel>
                     <TextBlock Text="公共工事 積算AI" FontSize="32" FontWeight="Bold" Foreground="#16212D"/>
-                    <TextBlock Text="Golden River単価を基準に、迷わず確認できる積算環境" FontSize="16" Foreground="#607080" Margin="0,6,0,24"/>
+                    <TextBlock Text="Golden Riverを基準単価にして、PDF・過去工事・複数AIで積算を照合します。"
+                               FontSize="16" Foreground="#607080" Margin="0,6,0,24"/>
                     <WrapPanel>
-                        <Button Width="260" Height="100" Content="＋  新しい工事を積算" FontSize="18" IsEnabled="False" ToolTip="次版で設計書解析を追加"/>
+                        <Button Width="260" Height="100" Content="＋  新しい工事を積算" FontSize="18" Click="Estimate_Click"/>
                         <Button Width="260" Height="100" Content="🔎  Golden River単価検索" FontSize="18" Click="Price_Click"/>
                         <Button Width="260" Height="100" Content="🔄  単価を同期する" FontSize="18" Click="Sync_Click"/>
                     </WrapPanel>
@@ -37,18 +46,92 @@
                         <StackPanel>
                             <TextBlock Text="現在の単価データ" FontSize="20" FontWeight="Bold"/>
                             <TextBlock x:Name="CurrentVersionText" Text="まだ単価データがありません。" Margin="0,12,0,0" FontSize="15"/>
-                            <TextBlock Text="※ Golden RiverからExcel/CSV出力したファイルを同期フォルダへ保存してください。" Foreground="#677788" Margin="0,10,0,0"/>
+                            <TextBlock Text="Golden RiverからCSV/Excel出力した単価を最優先で使用します。"
+                                       Foreground="#677788" Margin="0,10,0,0"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
             </Grid>
 
-            <Grid x:Name="PricePanel" Visibility="Collapsed">
+            <Grid x:Name="EstimatePanel" Visibility="Collapsed">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
+                <StackPanel>
+                    <TextBlock Text="新規積算" FontSize="28" FontWeight="Bold"/>
+                    <Grid Margin="0,12,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="1.5*"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="1.3*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="工事名" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" x:Name="ProjectNameBox"/>
+                        <TextBlock Grid.Column="2" Text="施工場所" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="3" x:Name="ProjectLocationBox" Text="飯田市"/>
+                        <TextBlock Grid.Column="4" Text="地域設定" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="5" x:Name="RegionCombo" Margin="5" SelectionChanged="RegionCombo_SelectionChanged"/>
+                    </Grid>
+                </StackPanel>
+
+                <DockPanel Grid.Row="1" Margin="0,3,0,10">
+                    <WrapPanel DockPanel.Dock="Left">
+                        <Button Content="① 設計書PDFを読込" Click="OpenPdf_Click"/>
+                        <Button Content="② Golden River照合" Click="MatchPrices_Click"/>
+                        <Button Content="③ 過去工事と比較" Click="CompareHistory_Click"/>
+                        <Button x:Name="AiCheckButton" Content="④ AIで再照合" Click="AiCheck_Click"/>
+                        <Button Content="Excel出力" Click="ExportEstimate_Click"/>
+                    </WrapPanel>
+                    <TextBlock x:Name="EstimateStatus" Text="PDFを読み込んでください。" VerticalAlignment="Center"
+                               Foreground="#506070" TextWrapping="Wrap"/>
+                </DockPanel>
+
+                <DataGrid Grid.Row="2" x:Name="EstimateGrid" AutoGenerateColumns="False" CanUserAddRows="False"
+                          IsReadOnly="False" HeadersVisibility="Column" AlternatingRowBackground="#F7F9FB">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="No" Binding="{Binding No}" Width="50" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="頁" Binding="{Binding Page}" Width="45" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="判定" Binding="{Binding MatchStatus}" Width="110" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="コード" Binding="{Binding Code}" Width="120" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="1.7*"/>
+                        <DataGridTextColumn Header="規格" Binding="{Binding Spec}" Width="1.5*"/>
+                        <DataGridTextColumn Header="単位" Binding="{Binding Unit}" Width="70"/>
+                        <DataGridTextColumn Header="数量" Binding="{Binding Quantity}" Width="90"/>
+                        <DataGridTextColumn Header="単価" Binding="{Binding UnitPrice, StringFormat=N0}" Width="110" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="金額" Binding="{Binding Amount, StringFormat=N0}" Width="120" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="一致度" Binding="{Binding Confidence, StringFormat=P0}" Width="80" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="根拠・確認事項" Binding="{Binding Note}" Width="2*" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <Grid Grid.Row="3" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+                    <Border Background="White" CornerRadius="7" Padding="12" Margin="0,0,8,0">
+                        <StackPanel>
+                            <TextBlock Text="積算サマリー" FontWeight="Bold" FontSize="16"/>
+                            <TextBlock x:Name="DirectCostText" Text="直接工事費（抽出分）：0円" FontSize="18" Margin="0,6,0,0"/>
+                            <TextBlock x:Name="HistoricalSummaryText" Text="過去比較：未実行" Foreground="#5B6875" Margin="0,5,0,0"/>
+                            <TextBlock x:Name="RegionRuleText" Text="" Foreground="#5B6875" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Background="White" CornerRadius="7" Padding="12">
+                        <StackPanel>
+                            <TextBlock Text="AI照合結果" FontWeight="Bold" FontSize="16"/>
+                            <TextBox x:Name="AiResultBox" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto" Height="110" Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <Grid x:Name="PricePanel" Visibility="Collapsed">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                 <TextBlock Text="Golden River 単価検索" FontSize="28" FontWeight="Bold"/>
                 <DockPanel Grid.Row="1" Margin="0,15">
                     <TextBox x:Name="SearchBox" Width="520" Height="42" VerticalContentAlignment="Center" KeyDown="SearchBox_KeyDown"/>
@@ -82,6 +165,68 @@
                     </WrapPanel>
                     <Border Background="White" Padding="18" CornerRadius="8" Margin="0,20">
                         <TextBlock x:Name="SyncStatus" Text="同期待機中" TextWrapping="Wrap" FontSize="15"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <Grid x:Name="HistoricalPanel" Visibility="Collapsed">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <TextBlock Text="過去10年 公共工事比較" FontSize="28" FontWeight="Bold"/>
+                <WrapPanel Grid.Row="1" Margin="0,12">
+                    <Button Content="入札結果CSV/Excelを取込" Click="HistoryImport_Click"/>
+                    <TextBlock Text="検索語" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                    <TextBox x:Name="HistoryKeywordBox" Width="240"/>
+                    <TextBlock Text="地域" VerticalAlignment="Center"/>
+                    <TextBox x:Name="HistoryLocationBox" Width="160" Text="飯田"/>
+                    <Button Content="検索" Click="HistorySearch_Click"/>
+                </WrapPanel>
+                <TextBlock Grid.Row="2" x:Name="HistorySummaryText" Text="国・長野県・飯田市の入札結果をCSV/Excelで蓄積できます。"
+                           Foreground="#536575" Margin="0,0,0,8"/>
+                <DataGrid Grid.Row="3" x:Name="HistoricalGrid" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="日付" Binding="{Binding BidDate}" Width="110"/>
+                        <DataGridTextColumn Header="発注者" Binding="{Binding Agency}" Width="120"/>
+                        <DataGridTextColumn Header="工事名" Binding="{Binding ProjectName}" Width="2*"/>
+                        <DataGridTextColumn Header="工種" Binding="{Binding Category}" Width="120"/>
+                        <DataGridTextColumn Header="場所" Binding="{Binding Location}" Width="140"/>
+                        <DataGridTextColumn Header="予定価格" Binding="{Binding PlannedPrice, StringFormat=N0}" Width="130"/>
+                        <DataGridTextColumn Header="落札額" Binding="{Binding AwardPrice, StringFormat=N0}" Width="130"/>
+                        <DataGridTextColumn Header="落札率" Binding="{Binding BidRate, StringFormat=P1}" Width="90"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+
+            <Grid x:Name="SettingsPanel" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock Text="地域・AI設定" FontSize="28" FontWeight="Bold"/>
+                    <Border Background="White" CornerRadius="8" Padding="18" Margin="0,15,0,10">
+                        <StackPanel>
+                            <TextBlock Text="長野県・飯田地区設定" FontSize="18" FontWeight="Bold"/>
+                            <ComboBox x:Name="SettingsRegionCombo" Margin="0,10,0,5" Width="420" HorizontalAlignment="Left"
+                                      SelectionChanged="SettingsRegionCombo_SelectionChanged"/>
+                            <TextBlock x:Name="SettingsRegionText" TextWrapping="Wrap" Foreground="#536575"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="White" CornerRadius="8" Padding="18" Margin="0,5">
+                        <StackPanel>
+                            <TextBlock Text="複数AI照合" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Text="キーはWindowsの現在ユーザー専用暗号化で保存します。未設定AIは自動的にスキップします。"
+                                       Foreground="#536575" Margin="0,5,0,12"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="170"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <TextBlock Text="OpenAI API Key" VerticalAlignment="Center"/>
+                                <PasswordBox Grid.Column="1" x:Name="OpenAiKeyBox" Margin="5" Padding="8"/>
+                                <TextBlock Grid.Row="1" Text="Claude API Key" VerticalAlignment="Center"/>
+                                <PasswordBox Grid.Row="1" Grid.Column="1" x:Name="AnthropicKeyBox" Margin="5" Padding="8"/>
+                                <TextBlock Grid.Row="2" Text="Gemini API Key" VerticalAlignment="Center"/>
+                                <PasswordBox Grid.Row="2" Grid.Column="1" x:Name="GeminiKeyBox" Margin="5" Padding="8"/>
+                            </Grid>
+                            <WrapPanel Margin="0,10,0,0">
+                                <Button Content="APIキーを保存" Click="SaveAiKeys_Click"/>
+                                <TextBlock x:Name="AiKeyStatusText" VerticalAlignment="Center" Margin="10,0"/>
+                            </WrapPanel>
+                        </StackPanel>
                     </Border>
                 </StackPanel>
             </Grid>

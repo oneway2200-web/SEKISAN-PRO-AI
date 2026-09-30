@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace SekisanProAI.Services;
 
 public sealed class FolderWatchService : IDisposable

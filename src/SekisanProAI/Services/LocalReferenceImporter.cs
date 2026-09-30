@@ -269,14 +269,20 @@ public sealed class LocalReferenceImporter
 
         if (ext == ".json")
         {
+            List<RuleRow>? jsonRows = null;
             try
             {
                 using var doc = JsonDocument.Parse(text);
-                foreach (var row in FlattenJson(doc.RootElement, "", category))
+                jsonRows = FlattenJson(doc.RootElement, "", category).ToList();
+            }
+            catch { }
+
+            if (jsonRows is not null)
+            {
+                foreach (var row in jsonRows)
                     yield return row;
                 yield break;
             }
-            catch { }
         }
 
         foreach (var raw in text.Split((char)10))

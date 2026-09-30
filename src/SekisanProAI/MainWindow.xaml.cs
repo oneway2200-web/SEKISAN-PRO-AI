@@ -20,6 +20,8 @@ public partial class MainWindow : Window
     private readonly RegionProfileService _regions = new();
     private readonly SecretStore _secrets;
     private readonly AiCrossCheckService _ai;
+    private readonly LocalReferenceImporter _localReferences;
+    private readonly PeriodicSyncService _periodicSync;
     private readonly ObservableCollection<EstimateLine> _estimateLines = new();
     private List<HistoricalProject> _lastHistorical = [];
     private string _lastPdfPath = "";
@@ -33,12 +35,19 @@ public partial class MainWindow : Window
         _historical = new HistoricalDataService(_db);
         _secrets = new SecretStore(_db);
         _ai = new AiCrossCheckService(_secrets);
+        _localReferences = new LocalReferenceImporter(_db);
+        _periodicSync = new PeriodicSyncService(_db, _watcher);
 
         _watcher.StatusChanged += s => Dispatcher.Invoke(() =>
         {
             SyncStatus.Text = s;
             SidebarStatus.Text = s;
             RefreshVersion();
+        });
+        _periodicSync.StatusChanged += s => Dispatcher.Invoke(() =>
+        {
+            SidebarStatus.Text = s;
+            if (SyncStatus is not null) SyncStatus.Text = s;
         });
 
         EstimateGrid.ItemsSource = _estimateLines;
@@ -53,7 +62,9 @@ public partial class MainWindow : Window
 
         RefreshVersion();
         RefreshAiKeyStatus();
+        RefreshLocalReferenceStatus();
         UpdateRegionRule();
+        _periodicSync.Start();
     }
 
     private void Show(UIElement panel)
@@ -281,6 +292,67 @@ public partial class MainWindow : Window
         HistorySummaryText.Text = _historical.Summary(_lastHistorical);
     }
 
+
+    private void ImportSystemZip_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "system.zip / ZIP (*.zip)|*.zip|すべてのファイル|*.*",
+            Title = "Golden River / 長野県の system.zip を選択"
+        };
+        if (dlg.ShowDialog() != true) return;
+        try
+        {
+            var r = _localReferences.ImportSystemZip(dlg.FileName);
+            LocalReferenceStatusText.Text = $"system.zip取込完了：対象ファイル {r.RuleFiles:N0} / 設定候補 {r.RuleEntries:N0}件";
+            SidebarStatus.Text = LocalReferenceStatusText.Text;
+            RefreshLocalReferenceStatus();
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show(ex.Message, "system.zip取込エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void ImportUnitZip_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "Golden River単価ZIP (*.zip)|*.zip|すべてのファイル|*.*",
+            Title = "Golden Riverの単価ZIPを選択"
+        };
+        if (dlg.ShowDialog() != true) return;
+        try
+        {
+            var r = _localReferences.ImportUnitPriceZipCatalog(dlg.FileName);
+            LocalReferenceStatusText.Text = $"単価ZIP一覧取込完了：GRZ {r.GrzFiles:N0}件。金額はCSV/Excel同期を使用します。";
+            SidebarStatus.Text = LocalReferenceStatusText.Text;
+            RefreshLocalReferenceStatus();
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show(ex.Message, "単価ZIP取込エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void SearchLocalRules_Click(object sender, RoutedEventArgs e)
+    {
+        var rows = _localReferences.SearchRules(LocalRuleSearchBox.Text.Trim(), 200);
+        LocalRuleResultBox.Text = rows.Count == 0
+            ? "該当するローカル設定がありません。"
+            : string.Join("\n", rows.Select(x =>
+                $"[{x.Category}] {x.Key} = {x.Value}  ({x.Source})"));
+    }
+
+    private void RefreshLocalReferenceStatus()
+    {
+        if (LocalReferenceStatusText is null) return;
+        var r = _localReferences.GetStatus();
+        LocalReferenceStatusText.Text =
+            $"ローカル参照：設定ファイル {r.RuleFiles:N0} / 設定候補 {r.RuleEntries:N0} / GRZ一覧 {r.GrzFiles:N0}" +
+            (string.IsNullOrWhiteSpace(r.LastImportedAt) ? "" : $" / 最終取込 {r.LastImportedAt}");
+    }
+
     private void SaveAiKeys_Click(object sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrWhiteSpace(OpenAiKeyBox.Password)) _secrets.Save("openai_key", OpenAiKeyBox.Password.Trim());
@@ -341,6 +413,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        _periodicSync.Dispose();
         _watcher.Dispose();
         base.OnClosed(e);
     }

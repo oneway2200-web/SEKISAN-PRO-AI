@@ -42,7 +42,7 @@ public partial class MainWindow : Window
     private void History_Click(object sender,RoutedEventArgs e){ Show(HistoryPanel); VersionGrid.ItemsSource=_db.GetVersions(); }
 
     private void Search_Click(object sender,RoutedEventArgs e)=>Search();
-    private void SearchBox_KeyDown(object sender,KeyEventArgs e){ if(e.Key==Key.Enter) Search(); }
+    private void SearchBox_KeyDown(object sender,System.Windows.Input.KeyEventArgs e){ if(e.Key==Key.Enter) Search(); }
     private void Search()=>PriceGrid.ItemsSource=_db.Search(SearchBox.Text.Trim());
 
     private void ChooseFolder_Click(object sender,RoutedEventArgs e)

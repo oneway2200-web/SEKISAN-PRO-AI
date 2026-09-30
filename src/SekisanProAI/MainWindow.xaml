@@ -164,7 +164,11 @@
                         <Button Content="設定を保存" Width="140" Click="SaveFolder_Click"/>
                     </WrapPanel>
                     <Border Background="White" Padding="18" CornerRadius="8" Margin="0,20">
-                        <TextBlock x:Name="SyncStatus" Text="同期待機中" TextWrapping="Wrap" FontSize="15"/>
+                        <StackPanel>
+                            <TextBlock x:Name="SyncStatus" Text="同期待機中" TextWrapping="Wrap" FontSize="15"/>
+                            <TextBlock Text="監視フォルダはアプリ起動時と30分ごとに自動確認します。同一ファイルは重複登録しません。"
+                                       Foreground="#607080" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
                     </Border>
                 </StackPanel>
             </Grid>
@@ -207,6 +211,25 @@
                             <TextBlock x:Name="SettingsRegionText" TextWrapping="Wrap" Foreground="#536575"/>
                         </StackPanel>
                     </Border>
+                    <Border Background="White" CornerRadius="8" Padding="18" Margin="0,5,0,10">
+                        <StackPanel>
+                            <TextBlock Text="Golden River / 長野県 ローカル参照データ" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Text="system.zipや単価ZIPの内容はGitHubへ送らず、このPCのSQLiteだけに保存します。暗号化GRZの金額は解析せず、ファイル一覧・年月・分類のみ登録します。"
+                                       Foreground="#536575" TextWrapping="Wrap" Margin="0,5,0,10"/>
+                            <WrapPanel>
+                                <Button Content="system.zipを読込" Click="ImportSystemZip_Click"/>
+                                <Button Content="単価ZIP一覧を読込" Click="ImportUnitZip_Click"/>
+                            </WrapPanel>
+                            <TextBlock x:Name="LocalReferenceStatusText" Margin="0,8,0,8" TextWrapping="Wrap"/>
+                            <DockPanel>
+                                <TextBox x:Name="LocalRuleSearchBox" Width="320" ToolTip="飯田、歩掛、経費、週休、端数など"/>
+                                <Button Content="設定ルール検索" Click="SearchLocalRules_Click"/>
+                            </DockPanel>
+                            <TextBox x:Name="LocalRuleResultBox" Height="120" IsReadOnly="True" AcceptsReturn="True"
+                                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+
                     <Border Background="White" CornerRadius="8" Padding="18" Margin="0,5">
                         <StackPanel>
                             <TextBlock Text="複数AI照合" FontSize="18" FontWeight="Bold"/>

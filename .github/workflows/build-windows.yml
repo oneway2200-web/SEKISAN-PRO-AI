@@ -1,0 +1,49 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - '.github/workflows/build-windows.yml'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore src/SekisanProAI/SekisanProAI.csproj -r win-x64
+
+      - name: Publish self-contained single EXE
+        run: dotnet publish src/SekisanProAI/SekisanProAI.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+
+      - name: Create package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path package | Out-Null
+          Copy-Item publish\SEKISAN_PRO_AI.exe package\SEKISAN_PRO_AI.exe
+          @"
+          SEKISAN PRO AI
+          1. SEKISAN_PRO_AI.exe をダブルクリックしてください。
+          2. Golden RiverのCSV/XLSXは「Golden River同期」から取り込めます。
+          3. 初回起動時のDBは %LOCALAPPDATA%\SEKISAN_PRO_AI\sekisan.db に作成されます。
+          "@ | Set-Content package\はじめに.txt -Encoding UTF8
+          Compress-Archive -Path package\* -DestinationPath SEKISAN_PRO_AI_Windows_x64.zip -Force
+
+      - name: Upload Windows app
+        uses: actions/upload-artifact@v4
+        with:
+          name: SEKISAN_PRO_AI_Windows_x64
+          path: SEKISAN_PRO_AI_Windows_x64.zip
+          if-no-files-found: error

@@ -279,10 +279,7 @@ public sealed class LocalReferenceImporter
             catch { }
         }
 
-        foreach (var raw in text.Replace("
-","
-").Split('
-'))
+        foreach (var raw in text.Split((char)10))
         {
             var line = raw.Trim();
             if (line.Length == 0 || line.Length > 2000) continue;
